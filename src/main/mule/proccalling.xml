@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="604937c7-e135-41e3-bc80-a7add934de29" basePath="/Proc" >
+		<http:listener-connection host="localhost" port="8086" />
+	</http:listener-config>
+	<db:config name="Mysql_Connection" doc:name="Database Config" doc:id="883b6c6b-243f-40cd-af15-fb20cb8036c7" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="Contour@1234" database="ibm_ace" />
+	</db:config>
+	<flow name="Insert" doc:id="9791aab2-68a6-4eb5-8953-cb551c74a4be" >
+		<http:listener doc:name="Listener" doc:id="5a54014b-a024-404e-8466-e8c642cf0858" config-ref="HTTP_Listener_config" path="/Insert"/>
+		<db:stored-procedure doc:name="Stored procedure" doc:id="c191fdd7-bf51-402f-a255-621d8f9e00c4" config-ref="Mysql_Connection">
+			<db:sql ><![CDATA[CALL insert_person(:fname,:lname,:email,:cell,:age,:salary,:grade,:resp_code,:resp_desc);]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	fname:"Iqra",
+	lname:"Rauf",
+	email:"IqraRauf@yahoo.com",
+	cell:"03310245321",
+	age:22,
+	salary:3256.24,
+	grade:"Lawyer"
+}]]]></db:input-parameters>
+			<db:output-parameters >
+				<db:output-parameter key="resp_code" type="INTEGER" />
+				<db:output-parameter key="resp_desc" type="VARCHAR" />
+			</db:output-parameters>
+		</db:stored-procedure>
+		<ee:transform doc:name="Transform Message" doc:id="5185a65f-390f-4f55-a9f2-276f6500fd75" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	Response:
+	{
+		ResponseCode:payload.resp_code,
+		ResponseDesc:payload.resp_desc
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="Update" doc:id="2d348cf8-ce97-498b-ae11-5b561671b157" >
+		<http:listener doc:name="Listener" doc:id="f5a92fc8-65cc-40ca-b1d9-7b677da2503f" config-ref="HTTP_Listener_config" path="/Update"/>
+		<db:stored-procedure doc:name="Stored procedure" doc:id="c919c7c2-a6e7-4de4-91e9-6a0b244d0c82" config-ref="Mysql_Connection">
+			<db:sql ><![CDATA[CALL ibm_ace.update_person(:sno,:fname,:lname,:email,:cell,:age,:salary,:grade,:resp_code,:resp_desc);]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	psno:1,
+	fname:"Adil",
+	lname:"Abdullah",
+	pemail:"adil_abdullah@hotmail.com",
+	pcell:"03132770440",
+	page:30,
+	psalary:20000.00,
+	pgrade:"Software Engineer"
+}]]]></db:input-parameters>
+			<db:output-parameters >
+				<db:output-parameter key="resp_code" type="INTEGER" />
+				<db:output-parameter key="resp_desc" type="VARCHAR" />
+			</db:output-parameters>
+		</db:stored-procedure>
+		<ee:transform doc:name="Transform Message" doc:id="2de7ea9d-cb26-419a-adc2-bfa741ec5f23" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	Response:
+	{
+		ResponseCode:payload.resp_code,
+		ResponseDesc:payload.resp_desc
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="Delete" doc:id="47eaea35-a408-4509-96d0-119b8f4c9425" >
+		<http:listener doc:name="Listener" doc:id="e240b88a-3cb0-4ded-bf1b-7d12a6680579" config-ref="HTTP_Listener_config" path="/Delete"/>
+		<db:stored-procedure doc:name="Stored procedure" doc:id="be2f9c7c-13d9-4203-b9ca-7da7d89ab1dd" config-ref="Mysql_Connection">
+			<db:sql ><![CDATA[CALL ibm_ace.delete_person(:sno,:resp_code,:resp_desc);]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	sno:8
+}]]]></db:input-parameters>
+			<db:output-parameters >
+				<db:output-parameter key="resp_code" type="INTEGER" />
+				<db:output-parameter key="resp_desc" type="VARCHAR" />
+			</db:output-parameters>
+		</db:stored-procedure>
+		<ee:transform doc:name="Transform Message" doc:id="a8726fd5-b043-4615-a110-e0a50e279eda" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	Response:
+	{
+		ResponseCode:payload.resp_code,
+		ResponseDesc:payload.resp_desc
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="Specific" doc:id="4f63fb3e-498c-4ba6-b927-d2e5f2b7ba04" >
+		<http:listener doc:name="Listener" doc:id="881320da-299c-435a-a190-693cec8fd09d" config-ref="HTTP_Listener_config" path="/Specific"/>
+		<db:stored-procedure doc:name="Stored procedure" doc:id="5dfee8b6-308b-416c-b87e-b908e26d93d4" config-ref="Mysql_Connection">
+			<db:sql ><![CDATA[CALL ibm_ace.specific_person(:sno);]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	sno:12
+}]]]></db:input-parameters>
+		</db:stored-procedure>
+		<ee:transform doc:name="Transform Message" doc:id="304663ee-7b8e-4b95-be02-c189d3bdc36f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	Response:
+	{
+		Result:payload
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="All" doc:id="386412c4-7642-4fce-899c-a0ad23c92813" >
+		<http:listener doc:name="Listener" doc:id="8a7e1774-f9a7-45f9-a128-a95a46262caf" config-ref="HTTP_Listener_config" path="/All"/>
+		<db:stored-procedure doc:name="Stored procedure" doc:id="c6f153b8-a9d2-47c2-94d1-3a4a322c4f45" config-ref="Mysql_Connection">
+			<db:sql ><![CDATA[CALL ibm_ace.all_person();]]></db:sql>
+		</db:stored-procedure>
+		<ee:transform doc:name="Transform Message" doc:id="eb91742d-1e52-4ba1-85b4-65cb10104540" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	Response:
+	{
+		Result:payload
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
